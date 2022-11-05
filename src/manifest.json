@@ -1,13 +1,29 @@
 {
-    "manifest_version": 3,
-    "name": "AnyURL",
-    "description": "Description",
-    "version": "1.0",
-    "options_ui": {
-        "page": "settings/settings.html",
-        "open_in_tab": true
-    },
-    "action": {
-      "default_popup": "popup/popup.html"
-    }
+  "manifest_version": 3,
+  "name": "AnyURL",
+  "description": "Description",
+  "version": "1.0",
+  "content_security_policy": {
+    "extension_page": "script-src 'self' 'sha256-b2489GjBmBHXEi22+d2bqwEno43H5/3/0vEdnJkFIrM='"
+  },
+  "options_ui": {
+    "page": "settings/settings.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "permissions": [
+    "notifications",
+    "tabs",
+    "storage"
+  ],
+  "icons": { 
+    "16": "assets/logo.png",
+    "48": "assets/logo.png",
+    "128": "assets/logo.png" 
   }
+}
