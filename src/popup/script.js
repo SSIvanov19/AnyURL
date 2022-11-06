@@ -305,8 +305,7 @@ backButton.addEventListener('click', () => {
 });
 
 downloadButton.addEventListener('click', () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    phishySites
+    let csvContent = "data:text/csv;charset=utf-8,Date,URL,Domain Check,State,SSL Check,Virus Check\r\n";
 
     Object.values(phishySites).forEach(site => {
         console.log(Object.values(site).join(','));
