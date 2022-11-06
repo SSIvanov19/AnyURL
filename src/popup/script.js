@@ -41,7 +41,7 @@ if (site !== undefined) {
     }
 
     if (!site.SSL) {
-        reasons.innerHTML += '<br>The site SSL certificate is not valid.'; 
+        reasons.innerHTML += '<br>The site SSL certificate is not valid.';
     }
 
     if (!site.virusTotalCheck) {
@@ -138,6 +138,7 @@ advSecToggle.addEventListener('change', (e) => {
 const whitelistButton = document.querySelector('#whitelist-button');
 const blacklistButton = document.querySelector('#blacklist-button');
 const backButton = document.querySelector('#back-button');
+const downloadButton = document.querySelector('#download-button');
 const mainPage = document.querySelector('#main-page');
 const whitelistPage = document.querySelector('#whitelist-page');
 const blacklistPage = document.querySelector('#blacklist-page');
@@ -163,4 +164,18 @@ backButton.addEventListener('click', () => {
     whitelistPage.style.display = 'none';
     blacklistPage.style.display = 'none';
     mainPage.style.display = 'block';
+});
+
+downloadButton.addEventListener('click', () => {
+    let csvContent = "data:text/csv;charset=utf-8,";
+
+    chrome.storage.sync.get('phishySites', (data) => {
+        Object.values(data.phishySites).forEach(site => {
+            console.log(Object.values(site).join(','));
+            const row = Object.values(site).join(",");
+            csvContent += row + "\r\n";
+        });
+    });
+    const encodedUri = encodeURI(csvContent);
+    window.open(encodedUri);
 });

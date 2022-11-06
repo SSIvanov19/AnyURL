@@ -127,7 +127,7 @@ export const isUrlPhishy = async (
             sslCheck: checks.SSL,
             virusTotalCheck: checks.virusTotal,
             enhancedSecurityCheck: checks.enhancedSecurity,
-            date: new Date()
+            date: new Date().getDate()
         };
 
         phishySites.push(obj);
