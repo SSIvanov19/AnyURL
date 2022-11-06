@@ -1,38 +1,78 @@
-let tabs = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+import { isUrlPhishy } from '../scripts/index.js';
+
+let tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
 let url = tabs[0].url;
-let p = document.querySelector('#url');
-
-p.innerHTML = url.split('/')[2];
-
+const p = document.querySelector('#url');
 const toggle = document.querySelector('#default-toggle');
 const sslToggle = document.querySelector('#ssl-toggle');
 const advSecToggle = document.querySelector('#adv-sec-toggle');
+const blockNumber = document.querySelector('#block-number');
+const statusText = document.querySelector('#status-text');
+
+if (url.startsWith('chrome-extension://')) {
+    let phishySites = await chrome.storage.sync.get('phishySites');
+    phishySites = phishySites.phishySites;
+    url = phishySites[phishySites.length - 1];
+    p.innerHTML = url;
+} else {
+    p.innerHTML = url.split('/')[2];
+}
+
+statusText.innerHTML = 'Checking URL...';
+/*
+const res = isUrlPhishy(
+    url,
+    chrome.storage.sync.get('whitelist'),
+    false,
+    false,
+    true
+);*/
+
+const res = 'secure';
+
+if (res === 'secure') {
+    statusText.innerHTML = 'SECURE';
+    statusText.style.color = 'green';
+    chrome.action.setIcon({ path: '../assets/icon-secure.png' });
+} else if (res === 'suspicious') {
+    statusText.innerHTML = 'SUSPICIOUS';
+    statusText.style.color = '#FFB800';
+    chrome.action.setIcon({ path: '../assets/icon-phishy.png' });
+} else {
+    statusText.innerHTML = 'DANGEROUS';
+    statusText.style.color = 'red';
+    chrome.action.setIcon({ path: '../assets/icon-phishy.png' });
+}
+
+chrome.storage.sync.get('phishySites', (data) => {
+    blockNumber.innerHTML = data.phishySites.length;
+});
 
 chrome.storage.sync.get('isON', (data) => {
     if (!data.isON) {
         sslToggle.removeAttribute('checked');
         toggle.removeAttribute('checked');
         advSecToggle.removeAttribute('checked');
-        chrome.storage.sync.set({ssl: false});
-        chrome.storage.sync.set({advSec: false});
+        chrome.storage.sync.set({ ssl: false });
+        chrome.storage.sync.set({ advSec: false });
     }
 });
 
 toggle.addEventListener('change', (e) => {
-    chrome.storage.sync.set({isON: e.target.checked});
+    chrome.storage.sync.set({ isON: e.target.checked });
 
     if (!e.target.checked) {
         sslToggle.removeAttribute('checked');
         toggle.removeAttribute('checked');
         advSecToggle.removeAttribute('checked');
-        chrome.storage.sync.set({ssl: false});
-        chrome.storage.sync.set({advSec: false});
+        chrome.storage.sync.set({ ssl: false });
+        chrome.storage.sync.set({ advSec: false });
     } else {
         sslToggle.setAttribute('checked', '');
         toggle.setAttribute('checked', '');
         advSecToggle.setAttribute('checked', '');
-        chrome.storage.sync.set({ssl: true});
-        chrome.storage.sync.set({advSec: true});
+        chrome.storage.sync.set({ ssl: true });
+        chrome.storage.sync.set({ advSec: true });
     }
 });
 
@@ -43,9 +83,8 @@ chrome.storage.sync.get('ssl', (data) => {
 });
 
 sslToggle.addEventListener('change', (e) => {
-    chrome.storage.sync.set({ssl: e.target.checked});
+    chrome.storage.sync.set({ ssl: e.target.checked });
 });
-
 
 chrome.storage.sync.get('advSec', (data) => {
     if (!data.advSec) {
@@ -54,7 +93,7 @@ chrome.storage.sync.get('advSec', (data) => {
 });
 
 advSecToggle.addEventListener('change', (e) => {
-    chrome.storage.sync.set({advSec: e.target.checked});
+    chrome.storage.sync.set({ advSec: e.target.checked });
 });
 
 const whitelistButton = document.querySelector('#whitelist-button');

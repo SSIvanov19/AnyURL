@@ -1,29 +1,33 @@
 import topUsedSites from './topUsedSites.js';
-const whitelistedUrls = [];
-const hasVirusTotalChecks = true;
+const checkSSLCert = async (url) => {
+    const response = await fetch(`http://localhost:3000/ssl?url=${url}`, {
+        method: 'GET'
+    });
 
-const certificateIsSelfSigned = (issuer, subject) => {
-    return issuer === subject;
+    const data = await response.json();
+
+    try {
+        const grade = data.endpoints[0].grade;
+
+        return ['A+', 'A-', 'A', 'B+', 'B', 'B-'].includes(grade);
+    } catch (e) {
+        return true;
+    }
 };
 
 const checkVirusTotal = async (url) => {
-  if (hasVirusTotalChecks) {
-    const response = await fetch(`https://www.virustotal.com/api/v3/urls/${btoa('https://skidrowgames.cc/plugins/loads/Skidrowgames.exe')}`, {
-        method: 'GET',
-        headers: {
-            accept: 'application/json',
-            'x-apikey': '77cce44682d4ac4c2010b207b4c305575c1962cd0b59fa02494d4e1b4210089f'
-        }
+    const response = await fetch(`http://localhost:3000/virustotal?url=${url}`, {
+        method: 'Get'
     });
 
-    let analysisScore = 0;
+    const data = await response.json();
 
-    response.json().then(res => {
-        analysisScore = res.data.attributes.last_analysis_stats.suspicious + res.data.attributes.last_analysis_stats.malicious;
-    });
-
-    return analysisScore > 0;
-  }
+    try {
+        const analysisScore = data.total;
+        return analysisScore > 80;
+    } catch (e) {
+        return true;
+    }
 };
 
 const levenshteinDistance = (s, t) => {
@@ -57,10 +61,8 @@ const isUrlCloseToFamousUrl = (url) => {
     return true;
 };
 
-const isUrlPhishy = (
+export const isUrlPhishy = async (
     url,
-    sslIssuer = '',
-    sslSubject = '',
     whitelist = [],
     hasVirusTotalChecks = false,
     hasSSLCheck = false,
@@ -71,22 +73,24 @@ const isUrlPhishy = (
     }
 
     const checks = {
-        virusTotal: hasVirusTotalChecks ? checkVirusTotal(url) : true,
-        enhancedSecurity: hasEnhancedSecurity ? isUrlCloseToFamousUrl(url): true,
-        SSL: hasSSLCheck ? certificateIsSelfSigned(sslIssuer, sslSubject) : true
+        virusTotal: hasVirusTotalChecks ? await checkVirusTotal(url) : true,
+        enhancedSecurity: hasEnhancedSecurity ? isUrlCloseToFamousUrl(url) : true,
+        SSL: hasSSLCheck ? await checkSSLCert(url) : true
     };
+
+    console.log(checks)
 
     let checksPassed = 0;
 
     Object.keys(checks).forEach(check => {
-        if (check) {
+        if (checks[check]) {
             checksPassed += 1;
         }
     });
 
     if (checksPassed === 3) {
         return 'secure';
-    } else if (checksPassed in [2, 1]) {
+    } else if ([2, 1].includes(checksPassed)) {
         return 'suspicious';
     } else {
         return 'dangerous';
