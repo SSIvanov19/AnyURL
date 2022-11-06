@@ -100,7 +100,7 @@ export const isUrlPhishy = async (
         }
 
         const obj = {
-            domain: domain,
+            domain: url,
             severity: 'suspicious',
             sslCheck: checks.SSL,
             virusTotalCheck: checks.virusTotal,
