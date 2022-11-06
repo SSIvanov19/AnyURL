@@ -31,13 +31,13 @@ app.get('/ssl', async (req, res) => {
 })
 
 app.get('/virustotal', async (req, res) => {
-    const request = await fetch(`https://www.virustotal.com/vtapi/v2/url/scan?url=${req.query.url}&apikey=77cce44682d4ac4c2010b207b4c305575c1962cd0b59fa02494d4e1b4210089f`, {
+    const request = await fetch(`https://www.virustotal.com/vtapi/v2/url/scan?url=${req.query.url}&apikey=<your api key>`, {
         method: 'POST'
     });
 
     const data = await request.json();
 
-    const request2 = await fetch(`https://www.virustotal.com/vtapi/v2/url/report?apikey=77cce44682d4ac4c2010b207b4c305575c1962cd0b59fa02494d4e1b4210089f&resource=${data.scan_id}`, {
+    const request2 = await fetch(`https://www.virustotal.com/vtapi/v2/url/report?apikey=<your api key>&resource=${data.scan_id}`, {
         method: 'GET'
     });
 
