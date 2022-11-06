@@ -7,13 +7,15 @@ chrome.storage.sync.get('isON', (data) => {
         chrome.storage.sync.set({ ssl: true });
         chrome.storage.sync.set({ advSec: true });
         chrome.storage.sync.set({ phishySites: [] });
+        chrome.storage.sync.set({ whitelist: [] });
+        chrome.storage.sync.set({ blacklist: [] });
     }
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
     console.log('Update tab', tab.url);
 
-    if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://')) {
+    if (!tab.url.startsWith('http')) {
         console.log('Not a valid URL');
         return;
     }
@@ -27,7 +29,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
         const domain = url.split('/')[2];
         const res = await isUrlPhishy(
             domain,
-            chrome.storage.sync.get('whitelist'),
+            (await chrome.storage.sync.get('whitelist')).whitelist,
             true,
             true,
             true
@@ -39,20 +41,8 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
             chrome.action.setIcon({ path: '../assets/icon-secure.png' });
         } else if (res === 'suspicious') {
             chrome.action.setIcon({ path: '../assets/icon-phishy.png' });
-
         } else {
             chrome.action.setIcon({ path: '../assets/icon-phishy.png' });
-
-            let phishySites = await chrome.storage.sync.get('phishySites');
-
-            phishySites = phishySites.phishySites;
-
-            if (phishySites === undefined) {
-                phishySites = [];
-            }
-
-            phishySites.push(domain);
-            await chrome.storage.sync.set({ phishySites });
 
             chrome.tabs.create({ url: '../alert/alert.html' });
         }

@@ -8,10 +8,10 @@ const sslToggle = document.querySelector('#ssl-toggle');
 const advSecToggle = document.querySelector('#adv-sec-toggle');
 const blockNumber = document.querySelector('#block-number');
 const statusText = document.querySelector('#status-text');
+let phishySites = await chrome.storage.sync.get('phishySites');
+phishySites = phishySites.phishySites;
 
 if (url.startsWith('chrome-extension://')) {
-    let phishySites = await chrome.storage.sync.get('phishySites');
-    phishySites = phishySites.phishySites;
     url = phishySites[phishySites.length - 1];
     p.innerHTML = url;
 } else {
@@ -19,14 +19,6 @@ if (url.startsWith('chrome-extension://')) {
 }
 
 statusText.innerHTML = 'Checking URL...';
-/*
-const res = isUrlPhishy(
-    url,
-    chrome.storage.sync.get('whitelist'),
-    false,
-    false,
-    true
-);*/
 
 const res = 'secure';
 

@@ -1,12 +1,12 @@
 import topUsedSites from './topUsedSites.js';
+
 const checkSSLCert = async (url) => {
     const response = await fetch(`http://localhost:3000/ssl?url=${url}`, {
         method: 'GET'
     });
 
-    const data = await response.json();
-
     try {
+        const data = await response.json();
         const grade = data.endpoints[0].grade;
 
         return ['A+', 'A-', 'A', 'B+', 'B', 'B-'].includes(grade);
@@ -20,10 +20,10 @@ const checkVirusTotal = async (url) => {
         method: 'Get'
     });
 
-    const data = await response.json();
-
     try {
+        const data = await response.json();
         const analysisScore = data.total;
+
         return analysisScore > 80;
     } catch (e) {
         return true;
@@ -68,7 +68,7 @@ export const isUrlPhishy = async (
     hasSSLCheck = false,
     hasEnhancedSecurity = false,
 ) => {
-    if (url in whitelist) {
+    if (whitelist.includes(url)) {
         return 'secure';
     }
 
@@ -91,8 +91,48 @@ export const isUrlPhishy = async (
     if (checksPassed === 3) {
         return 'secure';
     } else if ([2, 1].includes(checksPassed)) {
+        let phishySites = await chrome.storage.sync.get('phishySites');
+
+        phishySites = phishySites.phishySites;
+
+        if (phishySites === undefined) {
+            phishySites = [];
+        }
+
+        const obj = {
+            domain: domain,
+            severity: 'suspicious',
+            sslCheck: checks.SSL,
+            virusTotalCheck: checks.virusTotal,
+            enhancedSecurityCheck: checks.enhancedSecurity,
+            date: new Date()
+        };
+
+        phishySites.push(obj);
+        await chrome.storage.sync.set({ phishySites });
+
         return 'suspicious';
     } else {
+        let phishySites = await chrome.storage.sync.get('phishySites');
+
+        phishySites = phishySites.phishySites;
+
+        if (phishySites === undefined) {
+            phishySites = [];
+        }
+
+        const obj = {
+            domain: domain,
+            severity: 'dangerous',
+            sslCheck: checks.SSL,
+            virusTotalCheck: checks.virusTotal,
+            enhancedSecurityCheck: checks.enhancedSecurity,
+            date: new Date()
+        };
+
+        phishySites.push(obj);
+        await chrome.storage.sync.set({ phishySites });
+
         return 'dangerous';
     }
 };
