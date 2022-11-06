@@ -31,8 +31,9 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
         const res = await isUrlPhishy(
             domain,
             (await chrome.storage.sync.get('whitelist')).whitelist,
-            true,
-            true,
+            (await chrome.storage.sync.get('blacklist')).blacklist,
+            (await chrome.storage.sync.get('advSec')).advSec,
+            (await chrome.storage.sync.get('ssl')).ssl,
             true
         );
 
@@ -41,7 +42,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
         if (res === 'secure') {
             chrome.action.setIcon({ path: '../assets/icon-secure.png' });
         } else if (res === 'suspicious') {
-            chrome.action.setIcon({ path: '../assets/icon-phishy.png' });
+            chrome.action.setIcon({ path: '../assets/icon-sus.png' });
         } else {
             chrome.action.setIcon({ path: '../assets/icon-phishy.png' });
 

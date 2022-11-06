@@ -64,12 +64,37 @@ const isUrlCloseToFamousUrl = (url) => {
 export const isUrlPhishy = async (
     url,
     whitelist = [],
+    blacklist = [],
     hasVirusTotalChecks = false,
     hasSSLCheck = false,
     hasEnhancedSecurity = false,
 ) => {
     if (whitelist.includes(url)) {
         return 'secure';
+    }
+
+    if (blacklist.includes(url)) {
+        let phishySites = await chrome.storage.sync.get('phishySites');
+
+        phishySites = phishySites.phishySites;
+
+        if (phishySites === undefined) {
+            phishySites = [];
+        }
+
+        const obj = {
+            domain: url,
+            severity: 'dangerous',
+            sslCheck: true,
+            virusTotalCheck: true,
+            enhancedSecurityCheck: true,
+            date: new Date()
+        };
+
+        phishySites.push(obj);
+        await chrome.storage.sync.set({ phishySites });
+
+        return 'dangerous';
     }
 
     const checks = {
@@ -105,7 +130,7 @@ export const isUrlPhishy = async (
             sslCheck: checks.SSL,
             virusTotalCheck: checks.virusTotal,
             enhancedSecurityCheck: checks.enhancedSecurity,
-            date: new Date()
+            date: new Date().toISOString()
         };
 
         phishySites.push(obj);
@@ -127,7 +152,7 @@ export const isUrlPhishy = async (
             sslCheck: checks.SSL,
             virusTotalCheck: checks.virusTotal,
             enhancedSecurityCheck: checks.enhancedSecurity,
-            date: new Date().getDate()
+            date: new Date().toISOString()
         };
 
         phishySites.push(obj);
