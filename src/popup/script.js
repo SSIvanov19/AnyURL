@@ -1,5 +1,3 @@
-import { isUrlPhishy } from '../scripts/index.js';
-
 let tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
 let url = tabs[0].url;
 const p = document.querySelector('#url');
@@ -8,20 +6,24 @@ const sslToggle = document.querySelector('#ssl-toggle');
 const advSecToggle = document.querySelector('#adv-sec-toggle');
 const blockNumber = document.querySelector('#block-number');
 const statusText = document.querySelector('#status-text');
+const secureSvg = document.querySelector('#secure-svg');
+const susSvg = document.querySelector('#sus-svg');
+const dangerousSvg = document.querySelector('#dangerous-svg');
+const reasons = document.querySelector('#reasons');
+
 let phishySites = await chrome.storage.sync.get('phishySites');
 phishySites = phishySites.phishySites;
 
-console.log(!url.startsWith('http'));
+const isURLValid  =  url.startsWith('http');
 
 if (url.startsWith('chrome-extension://')) {
     url = phishySites[phishySites.length - 1];
-    p.innerHTML = url;
-    statusText.innerHTML = 'Checking URL...';
 } else {
     url = url.split('/')[2];
-    p.innerHTML = url;
-    statusText.innerHTML = 'Checking URL...';
 }
+
+p.innerHTML = url;
+statusText.innerHTML = 'Checking URL...';
 
 console.log(phishySites);
 
@@ -30,27 +32,55 @@ let res = 'secure';
 
 if (site !== undefined) {
     res = site.severity;
+
+    console.log(site);
+    reasons.innerHTML = 'Reasons:';
+
+    if (!site.enhancedSecurityCheck) {
+        reasons.innerHTML += '<br>The site might try to steal your data.';
+    }
+
+    if (!site.SSL) {
+        reasons.innerHTML += '<br>The site SSL certificate is not valid.'; 
+    }
+
+    if (!site.virusTotalCheck) {
+        reasons.innerHTML += '<br>The site might include malicious files.';
+    }
 }
 
 if (res === 'secure') {
     statusText.innerHTML = 'SECURE';
-    statusText.style.color = 'green';
-    //chrome.action.setIcon({ path: '../assets/icon-secure.png' });
+    statusText.style.color = '#67C865';
+    secureSvg.style.display = 'block';
+    susSvg.style.display = 'none';
+    dangerousSvg.style.display = 'none';
+    reasons.style.display = 'none';
+    chrome.action.setIcon({ path: '../assets/icon-secure.png' });
 } else if (res === 'suspicious') {
     statusText.innerHTML = 'SUSPICIOUS';
     statusText.style.color = '#FFB800';
-    //chrome.action.setIcon({ path: '../assets/icon-phishy.png' });
+    secureSvg.style.display = 'none';
+    susSvg.style.display = 'block';
+    dangerousSvg.style.display = 'none';
+    chrome.action.setIcon({ path: '../assets/icon-phishy.png' });
 } else {
     statusText.innerHTML = 'DANGEROUS';
     statusText.style.color = 'red';
-    //chrome.action.setIcon({ path: '../assets/icon-phishy.png' });
+    secureSvg.style.display = 'none';
+    susSvg.style.display = 'none';
+    dangerousSvg.style.display = 'block';
+    chrome.action.setIcon({ path: '../assets/icon-phishy.png' });
 }
 
-console.log(!url.startsWith('http'))
-
-if (!url.startsWith('http')) {
+if (!isURLValid) {
     p.innerText = 'Not a valid URL';
     statusText.innerHTML = 'Not a valid URL';
+    secureSvg.style.display = 'none';
+    susSvg.style.display = 'none';
+    dangerousSvg.style.display = 'none';
+    statusText.style.color = '#474747';
+    chrome.action.setIcon({ path: '../assets/logo.png' });
 }
 
 chrome.storage.sync.get('phishySites', (data) => {

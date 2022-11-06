@@ -16,6 +16,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
     console.log('Update tab', tab.url);
 
     if (!tab.url.startsWith('http')) {
+        chrome.action.setIcon({ path: '../assets/logo.png' });
         console.log('Not a valid URL');
         return;
     }
